@@ -5,7 +5,7 @@
 //  Created by Alexander Filimonov on 29/02/2020.
 //
 
-struct CredentialsEntity: Codable {
+struct CredentialsEntity: Codable, Hashable {
 
     // MARK: - Nested Types
 

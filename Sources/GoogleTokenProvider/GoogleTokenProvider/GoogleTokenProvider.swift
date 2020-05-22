@@ -56,7 +56,7 @@ public final class GoogleTokenProvider: TokenProvider {
         let credentials = try FileService<CredentialsEntity>(filePath: credentialFilePath).load()
 
         // load token from file
-        guard let tokenEntity = try? getTokenFileService().load() else {
+        guard let tokenEntity = try? getTokenFileService(credentials: credentials).load() else {
             // there is no token file -> first launch
 
             // 1. auth app
@@ -66,7 +66,7 @@ public final class GoogleTokenProvider: TokenProvider {
 
             let code = try authApp(credentials: credentials)
             let token = TokenEntity(from: try exchange(credentials: credentials, code: code))
-            try getTokenFileService().save(content: token)
+            try getTokenFileService(credentials: credentials).save(content: token)
             return .init(tokenType: token.tokenType,
                          accessToken: token.accessToken)
         }
@@ -88,7 +88,7 @@ public final class GoogleTokenProvider: TokenProvider {
             let newToken = TokenEntity(from: try refreshToken(token: tokenEntity,
                                                               credentials: credentials),
                                        refreshToken: tokenEntity.refreshToken)
-            try getTokenFileService().save(content: newToken)
+            try getTokenFileService(credentials: credentials).save(content: newToken)
             return .init(tokenType: newToken.tokenType,
                          accessToken: newToken.accessToken)
         }
@@ -102,8 +102,9 @@ public final class GoogleTokenProvider: TokenProvider {
 private extension GoogleTokenProvider {
 
     /// Method for getting service for token file
-    func getTokenFileService() -> FileService<TokenEntity> {
-        let pathToTokenFile = Path.home + Constants.folderName + Path(Constants.tokenFileName)
+    func getTokenFileService(credentials: CredentialsEntity) -> FileService<TokenEntity> {
+        let tokenFileName = Path(String(credentials.hashValue) + Constants.tokenFileName)
+        let pathToTokenFile = Path.home + Constants.folderName + tokenFileName
         return FileService<TokenEntity>(filePath: pathToTokenFile)
     }
 
