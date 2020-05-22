@@ -11,7 +11,7 @@ let package = Package(
             targets: ["GoogleTokenProvider"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/alexfilimon/SwiftConnection", from: "1.0.2"),
+        .package(url: "https://github.com/alexfilimon/SwiftConnection", from: "1.0.3"),
         .package(url: "https://github.com/kylef/PathKit.git", from: "0.9.1"),
         .package(url: "https://github.com/httpswift/swifter.git", .upToNextMajor(from: "1.4.7")),
     ],
