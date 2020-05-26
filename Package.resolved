@@ -20,6 +20,15 @@
         }
       },
       {
+        "package": "SwiftConnection",
+        "repositoryURL": "https://github.com/alexfilimon/SwiftConnection",
+        "state": {
+          "branch": null,
+          "revision": "9d646b4f1ec13606e82025c2508500321035736a",
+          "version": "1.0.4"
+        }
+      },
+      {
         "package": "Swifter",
         "repositoryURL": "https://github.com/httpswift/swifter.git",
         "state": {
