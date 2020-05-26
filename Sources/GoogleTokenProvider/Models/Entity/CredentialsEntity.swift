@@ -5,7 +5,9 @@
 //  Created by Alexander Filimonov on 29/02/2020.
 //
 
-struct CredentialsEntity: Codable, Hashable {
+import SwiftHash
+
+struct CredentialsEntity: Codable {
 
     // MARK: - Nested Types
 
@@ -15,6 +17,13 @@ struct CredentialsEntity: Codable, Hashable {
         case authUrl = "authorize_url"
         case tokenUrl = "token_url"
         case callback = "callback"
+    }
+
+    // MARK: - Computed Properties
+
+    /// Value that unique identify different credentials (equal credentials have equal hashValues)
+    var hashValue: String {
+        return MD5(clientId + clientSecret)
     }
 
     // MARK: - Properties

@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/alexfilimon/SwiftConnection",
         "state": {
           "branch": null,
-          "revision": "fa019f76385963f26a56b9ed52d71eba323df4e0",
-          "version": "1.0.3"
+          "revision": "9d646b4f1ec13606e82025c2508500321035736a",
+          "version": "1.0.4"
         }
       },
       {
@@ -35,6 +35,15 @@
           "branch": null,
           "revision": "8b5afb48ae64d4f729f0489ddcfe09c62b9c3687",
           "version": "1.4.7"
+        }
+      },
+      {
+        "package": "SwiftHash",
+        "repositoryURL": "https://github.com/onmyway133/SwiftHash",
+        "state": {
+          "branch": null,
+          "revision": "a900fc3f33c67eb33c9e650651edf6e23a410b3c",
+          "version": "2.0.2"
         }
       }
     ]
