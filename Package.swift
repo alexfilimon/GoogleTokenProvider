@@ -11,14 +11,18 @@ let package = Package(
             targets: ["GoogleTokenProvider"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/alexfilimon/SwiftConnection", from: "1.0.3"),
+        // TODO: change on real
+//        .package(url: "https://github.com/alexfilimon/SwiftConnection", from: "1.0.3"),
+        .package(path: "../SwiftConnection"),
+
         .package(url: "https://github.com/kylef/PathKit.git", from: "0.9.1"),
         .package(url: "https://github.com/httpswift/swifter.git", .upToNextMajor(from: "1.4.7")),
+        .package(url: "https://github.com/onmyway133/SwiftHash", from: "2.0.2")
     ],
     targets: [
         .target(
             name: "GoogleTokenProvider",
-            dependencies: ["SwiftConnection", "PathKit", "Swifter"]),
+            dependencies: ["SwiftConnection", "PathKit", "Swifter", "SwiftHash"]),
         .testTarget(
             name: "GoogleTokenProviderTests",
             dependencies: ["GoogleTokenProvider"]),

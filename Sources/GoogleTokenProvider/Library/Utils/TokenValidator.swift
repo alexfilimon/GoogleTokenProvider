@@ -13,6 +13,7 @@ final class TokenValidator {
     // MARK: - Constants
 
     private enum Constants {
+        // Value that indicate how early we should refresh token before it will expire
         static let precisionInSeconds = 100
     }
 

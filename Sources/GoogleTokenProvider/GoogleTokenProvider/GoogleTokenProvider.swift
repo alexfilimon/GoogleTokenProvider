@@ -29,8 +29,9 @@ public final class GoogleTokenProvider: TokenProvider {
 
     // MARK: - Private Properties
 
-    private var scopes: [String]
-    private var credentialFilePath: Path
+    private let scopes: [String]
+    private let credentialFilePath: Path
+    private let shouldLog: Bool
 
     // MARK: - Initialization
 
@@ -38,12 +39,16 @@ public final class GoogleTokenProvider: TokenProvider {
     /// - Parameters:
     ///   - scopes: array of scropes fpr auth
     ///   - credentialFilePath: path to file with credentials (must be valid path)
-    public init(scopes: [String], credentialFilePath: Path) throws {
+    ///   - shouldLog: if need log to console
+    public init(scopes: [String],
+                credentialFilePath: Path,
+                shouldLog: Bool = false) throws {
         guard credentialFilePath.isFile else {
             throw GoogleTokenProviderError.couldntFindCredentials
         }
         self.scopes = scopes
         self.credentialFilePath = credentialFilePath
+        self.shouldLog = shouldLog
     }
 
     // MARK: - TokenProvider
@@ -59,19 +64,28 @@ public final class GoogleTokenProvider: TokenProvider {
         guard let tokenEntity = try? getTokenFileService(credentials: credentials).load() else {
             // there is no token file -> first launch
 
+            logIfNeeded(string: "File with tokens not found")
+
             // 1. auth app
             // 2. exchange token
             // 3. save token to file
             // 4. return success with access token
 
+            logIfNeeded(string: "Starting auth app")
+
             let code = try authApp(credentials: credentials)
             let token = TokenEntity(from: try exchange(credentials: credentials, code: code))
             try getTokenFileService(credentials: credentials).save(content: token)
+
+            logIfNeeded(string: "Successfully loaded token: \(token.tokenType) \(token.accessToken)")
+
             return .init(tokenType: token.tokenType,
                          accessToken: token.accessToken)
         }
 
         // token file exists
+
+        logIfNeeded(string: "File with tokens exists")
 
         // 1. check is token valid
         // 2. if token is invalid
@@ -82,13 +96,17 @@ public final class GoogleTokenProvider: TokenProvider {
         let tokenValidator = TokenValidator(dateCreated: tokenEntity.creationTime,
                                             expiresSeconds: tokenEntity.expiresIn)
         if tokenValidator.isTokenValid() {
+            logIfNeeded(string: "Token valid: \(tokenEntity.tokenType) \(tokenEntity.accessToken)")
             return .init(tokenType: tokenEntity.tokenType,
                          accessToken: tokenEntity.accessToken)
         } else {
+            logIfNeeded(string: "Token is not valid")
+            logIfNeeded(string: "Starting refreshing token")
             let newToken = TokenEntity(from: try refreshToken(token: tokenEntity,
                                                               credentials: credentials),
                                        refreshToken: tokenEntity.refreshToken)
             try getTokenFileService(credentials: credentials).save(content: newToken)
+            logIfNeeded(string: "Token refreshed successfully: \(tokenEntity.tokenType) \(tokenEntity.accessToken)")
             return .init(tokenType: newToken.tokenType,
                          accessToken: newToken.accessToken)
         }
@@ -103,7 +121,7 @@ private extension GoogleTokenProvider {
 
     /// Method for getting service for token file
     func getTokenFileService(credentials: CredentialsEntity) -> FileService<TokenEntity> {
-        let tokenFileName = Path(String(credentials.hashValue) + Constants.tokenFileName)
+        let tokenFileName = Path(String(credentials.hashValue) + "." + Constants.tokenFileName)
         let pathToTokenFile = Path.home + Constants.folderName + tokenFileName
         return FileService<TokenEntity>(filePath: pathToTokenFile)
     }
@@ -121,7 +139,7 @@ private extension GoogleTokenProvider {
             URLQueryItem(name: "state", value: UUID().uuidString),
             URLQueryItem(name: "scope", value: scopes.joined(separator: " ")),
             URLQueryItem(name: "show_dialog", value: "false"),
-            URLQueryItem(name: "access_type", value: "offline"),
+            URLQueryItem(name: "access_type", value: "offline")
         ]
         let sm = DispatchSemaphore(value: 0)
         var code: CodeEntry?
@@ -155,9 +173,10 @@ private extension GoogleTokenProvider {
             "grant_type": "authorization_code",
             "redirect_uri": Constants.getFullLocalServerUrlString(callbackPath: credentials.callback)
         ]
-        return try Connection().performRequest(urlString: credentials.tokenUrl,
-                                               method: .post,
-                                               params: params)
+        return try Connection(shouldLog: shouldLog)
+            .performRequest(urlString: credentials.tokenUrl,
+                            method: .post,
+                            params: params)
     }
 
     /// Method for refreshing access token
@@ -174,9 +193,10 @@ private extension GoogleTokenProvider {
             "grant_type": "refresh_token",
             "refresh_token": refresh
         ]
-        return try Connection().performRequest(urlString: credentials.tokenUrl,
-                                               method: .post,
-                                               params: params)
+        return try Connection(shouldLog: shouldLog)
+            .performRequest(urlString: credentials.tokenUrl,
+                            method: .post,
+                            params: params)
     }
 
     /// Method for starting local server
@@ -190,7 +210,7 @@ private extension GoogleTokenProvider {
                onCode?(CodeEntry(queryParams: request.queryParams))
             }
 
-            return HttpResponse.ok(.text("Success"))
+            return HttpResponse.ok(.text("Success. You may close this page."))
         }
         try server.start(UInt16(Constants.serverPort))
         return server
@@ -200,6 +220,11 @@ private extension GoogleTokenProvider {
     /// - Parameter server: server object
     func stopServer(server: HttpServer) {
         server.stop()
+    }
+
+    func logIfNeeded(string: String) {
+        guard shouldLog else { return }
+        print("\(Date()) [GoogleTokenProvider]: \(string)")
     }
 
 }
